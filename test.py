@@ -7,11 +7,10 @@ from time import sleep
 from fcntl import fcntl, F_GETFL, F_SETFL
 from os import O_NONBLOCK, read
 
-RECORD_FROM = 2.5
-DURATION = 5. # sec
+RECORD_FROM = 5.
+DURATION = 10. # sec
 SHADER_PATH = '000-void.frag'
 TMP_DIR = '/tmp/'
-TMP_SHD = TMP_DIR + 'shader.frag'
 
 class Shader:
     COMMAND='glslViewer'
@@ -92,8 +91,12 @@ else:
 if SHADER_PATH.isdigit():
     SHADER_PATH='https://thebookofshaders.com/log/' + SHADER_PATH + '.frag'
 
+name_shader = os.path.basename(SHADER_PATH);
+name,ext = os.path.splitext(name_shader)
+
 if SHADER_PATH.startswith('http'):
     http = urllib.URLopener()
+    TMP_SHD = TMP_DIR + name_shader
     http.retrieve(SHADER_PATH, TMP_SHD)
     SHADER_PATH=TMP_SHD
 
@@ -113,23 +116,16 @@ while True:
         if not value == old_value:
             values.append(value)
             samples.append(time_diff)
-            print time_diff,value
+            print str(time_diff)+','+str(value)
 shader.stop()
 
 average = sum(values)/float(len(values))
 print "Shader average: ",average
 
-import plotly
-import plotly.plotly as py
-import plotly.graph_objs as go
-
-plotly.tools.set_credentials_file(username='patriciogv', api_key='ELwIF5EOISZA8lhW92z3')
-
-trace1 = go.Scatter(
-    x=samples,
-    y=values
-)
-
-py.iplot([trace1], filename=os.path.basename(SHADER_PATH))
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots( nrows=1, ncols=1 )
+ax.plot(samples, values)
+fig.savefig(name+'.png')   # save the figure to file
+plt.close(fig)
 
 print "Finish"
