@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os,time,sys
+import os, time, sys, urllib, re
 
 # http://eyalarubas.com/python-subproc-nonblock.html
 from subprocess import Popen, PIPE
@@ -9,6 +9,9 @@ from os import O_NONBLOCK, read
 
 RECORD_FROM = 2.5
 DURATION = 5. # sec
+SHADER_PATH = '000-void.frag'
+TMP_DIR = '/tmp/'
+TMP_SHD = TMP_DIR + 'shader.frag'
 
 class Shader:
     COMMAND='glslViewer'
@@ -79,12 +82,20 @@ class Shader:
     def stop(self):
         self.process.kill()
 
-SHADER_PATH = 'shapes/000-void.frag'
-# if len(sys.argv) > 1:
-#     SHADER_PATH = sys.argv[1]
-# else:
-#     print 'This script dowload a shader and their resorces:\nUse:\n$ ./glslLoader.py [URL|LOG_#]\n'
-#     exit()
+
+if len(sys.argv) > 1:
+    SHADER_PATH = sys.argv[1]
+else:
+    print 'This script dowload a shader and their resorces:\nUse:\n$ ./glslLoader.py [URL|LOG_#]\n'
+    exit()
+
+if SHADER_PATH.isdigit():
+    SHADER_PATH='https://thebookofshaders.com/log/' + SHADER_PATH + '.frag'
+
+if SHADER_PATH.startswith('http'):
+    http = urllib.URLopener()
+    http.retrieve(SHADER_PATH, TMP_SHD)
+    SHADER_PATH=TMP_SHD
 
 shader = Shader(SHADER_PATH)
 time_start = time.time()
